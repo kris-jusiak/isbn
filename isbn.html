@@ -34,10 +34,10 @@
   </main>
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript">
-    window.onload = function() {
-      const codeReader = new ZXing.BrowserMultiFormatReader();
-      setTimeout(() => {
-        navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    function waitForCamera() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        navigator.mediaDevices.getUserMedia({ audio: false, video: true })
           .then(() => {
             codeReader.listVideoInputDevices()
               .then((videoInputDevices) => {
@@ -65,9 +65,12 @@
               .catch((err) => {
                 alert(err)
               })
-        }, 100);
-      })
+        })
+      } else {
+        setTimeout(waitForCamera, 100);
+      }
     }
+    window.onload = function() { waitForCamera(); }
   </script>
 </body>
 </html>
