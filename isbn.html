@@ -35,12 +35,11 @@
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript">
     window.onload = function() {
-      const codeReader = new ZXing.BrowserMultiFormatReader();
       navigator.mediaDevices.getUserMedia({ audio: false, video: true })
         .then(() => {
+          const codeReader = new ZXing.BrowserMultiFormatReader();
           codeReader.listVideoInputDevices()
             .then((videoInputDevices) => {
-              alert(videoInputDevices)
               codeReader.decodeFromVideoDevice(videoInputDevices.find(item => item.label === "camera2 0, facing back").deviceId, 'video', (result, err) => {
                 if (result) {
                   isbn = result.text
