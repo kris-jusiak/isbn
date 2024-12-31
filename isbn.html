@@ -70,7 +70,17 @@
         setTimeout(waitForCamera, 100);
       }
     }
-    window.onload = function() { waitForCamera(); }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const event = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+        });
+
+        document.dispatchEvent(event);
+        waitForCamera();
+    });
   </script>
 </body>
 </html>
