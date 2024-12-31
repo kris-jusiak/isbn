@@ -34,64 +34,38 @@
   </main>
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript">
-    const codeReader = new ZXing.BrowserMultiFormatReader();
-
-    function findDeviceWithRetry(attempts = 10, delay = 1000) {
-      return new Promise((resolve, reject) => {
-        const tryFindingDevice = (retriesLeft) => {
+    window.onload = function() {
+      const codeReader = new ZXing.BrowserMultiFormatReader();
+      navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+        .then(() => {
           codeReader.listVideoInputDevices()
             .then((videoInputDevices) => {
-              console.log('Available video input devices:', videoInputDevices);
-              const targetDevice = videoInputDevices.find(item => item.label.includes("facing back") || item.label.includes("camera2"));
-              if (targetDevice) {
-                console.log('Selected device:', targetDevice);
-                resolve(targetDevice); // Device found, resolve the promise
-              } else if (retriesLeft > 0) {
-                console.log(`Device not found. Retrying... (${retriesLeft} attempts left)`);
-                setTimeout(() => tryFindingDevice(retriesLeft - 1), delay); // Retry after a delay
-              } else {
-                reject('No suitable video device found after multiple attempts');
-              }
+              alert(videoInputDevices)
+              codeReader.decodeFromVideoDevice(videoInputDevices.find(item => item.label === "camera2 0, facing back").deviceId, 'video', (result, err) => {
+                if (result) {
+                  isbn = result.text
+                  fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const book = data.items ? data.items[0] : null;
+                        if (book) {
+                          const thumbnail = book.volumeInfo.imageLinks?.thumbnail;
+                          const title = book.volumeInfo.title || 'No title available';
+                          const author = book.volumeInfo.authors || '';
+                          const description = book.volumeInfo.description || 'No description available';
+                          const words = description.split(' ');
+                          const truncatedDescription = words.length > 25 ? words.slice(0, 25).join(' ') + '...' : description;
+                          location.href = `http://libraryofsian.jusiak.net/book.html?thumbnail=${encodeURIComponent(thumbnail)}&title=${encodeURIComponent(String(title).replace(/'/g, ''))}&author=${encodeURIComponent(String(author).replace(/'/g, ''))}`
+                        }
+                    })
+                }
+              })
             })
-            .catch((error) => {
-              console.error('Error listing video input devices:', error);
-              reject(error); // Reject on error
-            });
-        };
-
-        tryFindingDevice(attempts); // Start the first attempt
-      });
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-      findDeviceWithRetry()
-        .then((targetDevice) => {
-          codeReader.decodeFromVideoDevice(targetDevice.deviceId, 'video', (result, err) => {
-            if (result) {
-              const isbn = result.text;
-              fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
-                .then(response => response.json())
-                .then(data => {
-                  const book = data.items ? data.items[0] : null;
-                  if (book) {
-                    const thumbnail = book.volumeInfo.imageLinks?.thumbnail || '';
-                    const title = book.volumeInfo.title || 'No title available';
-                    const author = book.volumeInfo.authors?.join(', ') || 'Unknown author';
-                    const description = book.volumeInfo.description || 'No description available';
-                    const words = description.split(' ');
-                    const truncatedDescription = words.length > 25 ? words.slice(0, 25).join(' ') + '...' : description;
-                    location.href = `http://libraryofsian.jusiak.net/book.html?thumbnail=${encodeURIComponent(thumbnail)}&title=${encodeURIComponent(String(title).replace(/'/g, ''))}&author=${encodeURIComponent(String(author).replace(/'/g, ''))}`;
-                  }
-                });
-            } else if (err) {
-              console.error('Error decoding video stream:', err);
-            }
-          });
+            .catch((err) => {
+              alert(err)
+            })
         })
-        .catch((error) => {
-          console.error('Error finding video device:', error);
-        });
-    });
+    }
   </script>
 </body>
 </html>
