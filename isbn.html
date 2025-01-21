@@ -34,39 +34,36 @@
   </main>
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
   <script type="text/javascript">
-    window.onload = function() {
-      navigator.mediaDevices.getUserMedia({ audio: false, video: true })
-        .then(() => {
-          const codeReader = new ZXing.BrowserMultiFormatReader();
-          location.reload(true);
-          codeReader.listVideoInputDevices()
-            .then((videoInputDevices) => {
-              codeReader.decodeFromVideoDevice(videoInputDevices.find(item => item.label === "camera2 0, facing back").deviceId, 'video', (result, err) => {
-                if (result) {
-                  isbn = result.text
-                  fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const book = data.items ? data.items[0] : null;
-                        if (book) {
-                          const thumbnail = book.volumeInfo.imageLinks?.thumbnail;
-                          const title = book.volumeInfo.title || 'No title available';
-                          const author = book.volumeInfo.authors || '';
-                          const description = book.volumeInfo.description || 'No description available';
-                          const words = description.split(' ');
-                          const truncatedDescription = words.length > 25 ? words.slice(0, 25).join(' ') + '...' : description;
-                          <!--location.href = `http://libraryofsian.jusiak.net/index.html?thumbnail=${encodeURIComponent(thumbnail)}&title=${encodeURIComponent(String(title).replace(/'/g, ''))}&author=${encodeURIComponent(String(author).replace(/'/g, ''))}`-->
-                          location.href = `http://95.92.121.5:8080/index.html?thumbnail=${encodeURIComponent(thumbnail)}&title=${encodeURIComponent(String(title).replace(/'/g, ''))}&author=${encodeURIComponent(String(author).replace(/'/g, ''))}`
-                        }
-                    })
-                }
-              })
+    navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+      .then(() => {
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        codeReader.listVideoInputDevices()
+          .then((videoInputDevices) => {
+            codeReader.decodeFromVideoDevice(videoInputDevices.find(item => item.label === "camera2 0, facing back").deviceId, 'video', (result, err) => {
+              if (result) {
+                isbn = result.text
+                fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
+                  .then(response => response.json())
+                  .then(data => {
+                      const book = data.items ? data.items[0] : null;
+                      if (book) {
+                        const thumbnail = book.volumeInfo.imageLinks?.thumbnail;
+                        const title = book.volumeInfo.title || 'No title available';
+                        const author = book.volumeInfo.authors || '';
+                        const description = book.volumeInfo.description || 'No description available';
+                        const words = description.split(' ');
+                        const truncatedDescription = words.length > 25 ? words.slice(0, 25).join(' ') + '...' : description;
+                        <!--location.href = `http://libraryofsian.jusiak.net/index.html?thumbnail=${encodeURIComponent(thumbnail)}&title=${encodeURIComponent(String(title).replace(/'/g, ''))}&author=${encodeURIComponent(String(author).replace(/'/g, ''))}`-->
+                        location.href = `http://95.92.121.5:8080/index.html?thumbnail=${encodeURIComponent(thumbnail)}&title=${encodeURIComponent(String(title).replace(/'/g, ''))}&author=${encodeURIComponent(String(author).replace(/'/g, ''))}`
+                      }
+                  })
+              }
             })
-            .catch((err) => {
-              alert(err)
-            })
-        })
-    }
+          })
+          .catch((err) => {
+            alert(err)
+          })
+      });
   </script>
 </body>
 </html>
